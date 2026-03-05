@@ -9,16 +9,25 @@ export const useCourses = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  const [searchTerm, setSearchTerm] = useState("");
+
   // -------------------------
   // GET ALL COURSES
   // -------------------------
   const fetchCourses = async () => {
     setLoading(true);
 
-    const { data, error } = await supabase
+    let query = supabase
       .from("courses")
       .select("*")
       .order("created_at", { ascending: false });
+
+    // Apply search if user typed something
+    if (searchTerm) {
+      query = query.ilike("title", `%${searchTerm}%`);
+    }
+
+    const { data, error } = await query;
 
     if (error) {
       setError(error.message);
@@ -38,7 +47,7 @@ export const useCourses = () => {
       return;
     }
 
-    const { data, error } = await supabase
+    const { error } = await supabase
       .from("courses")
       .insert([courseData]);
 
@@ -91,14 +100,17 @@ export const useCourses = () => {
     }
   };
 
+  // Auto fetch when search changes
   useEffect(() => {
     fetchCourses();
-  }, []);
+  }, [searchTerm]);
 
   return {
     courses,
     loading,
     error,
+    searchTerm,
+    setSearchTerm,
     fetchCourses,
     createCourse,
     updateCourse,
