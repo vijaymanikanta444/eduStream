@@ -7,7 +7,6 @@ import {
 import AppLayout from "./layouts/AppLayout";
 import PublicHomePage from "./pages/PublicHomePage";
 import DashboardPage from "./pages/DashboardPage";
-import LoginPage from "./pages/LoginPage";
 import ProfilePage from "./pages/ProfilePage";
 import SettingsPage from "./pages/SettingsPage";
 import { useAuth } from "./contexts/AuthContext";
@@ -16,36 +15,23 @@ function ProtectedRoute({ children }) {
   const { isAuthenticated } = useAuth();
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/" replace />;
   }
 
   return children;
 }
 
 function App() {
-  const { isAuthenticated } = useAuth();
-
   return (
     <Router>
       <Routes>
-        {/* Public Home Page - No auth required */}
+        {/* Public Home Page - No auth required, login modal available */}
         <Route
           path="/"
           element={
             <AppLayout>
               <PublicHomePage />
             </AppLayout>
-          }
-        />
-
-        <Route
-          path="/login"
-          element={
-            !isAuthenticated ? (
-              <LoginPage />
-            ) : (
-              <Navigate to="/dashboard" replace />
-            )
           }
         />
 
@@ -83,6 +69,7 @@ function App() {
           }
         />
 
+        {/* Catch-all route - redirect to home */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Router>
