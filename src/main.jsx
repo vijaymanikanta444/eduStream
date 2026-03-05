@@ -5,14 +5,17 @@ import App from "./App.jsx";
 import { CssBaseline } from "@mui/material";
 import { AppThemeProvider } from "./contexts/ThemeContext";
 import { AuthProvider } from "./contexts/AuthContext";
+import { SearchProvider } from "./contexts/SearchContext";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <AuthProvider>
-      <AppThemeProvider>
-        <CssBaseline />
-        <App />
-      </AppThemeProvider>
+      <SearchProvider>
+        <AppThemeProvider>
+          <CssBaseline />
+          <App />
+        </AppThemeProvider>
+      </SearchProvider>
     </AuthProvider>
   </StrictMode>,
 );

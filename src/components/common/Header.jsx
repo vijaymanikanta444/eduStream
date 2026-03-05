@@ -8,10 +8,12 @@ import {
   useMediaQuery,
   useTheme,
   Button,
+  Container,
 } from "@mui/material";
 import SchoolIcon from "@mui/icons-material/School";
 import UserMenu from "./UserMenu";
 import LoginModal from "./LoginModal";
+import SearchBar from "./SearchBar";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 import logo2 from "../../assets/logo2.jpg";
@@ -46,6 +48,7 @@ function Header() {
             justifyContent: "space-between",
             alignItems: "center",
             px: { xs: 1, sm: 2 },
+            gap: 2,
           }}
         >
           {/* Left Section - Logo and Title */}
@@ -55,6 +58,7 @@ function Header() {
               alignItems: "center",
               gap: { xs: 0.5, sm: 1 },
               cursor: "pointer",
+              flexShrink: 0,
             }}
             onClick={() => navigate(isAuthenticated ? "/dashboard" : "/")}
           >
@@ -90,8 +94,17 @@ function Header() {
                   display: "flex",
                   alignItems: "center",
                   gap: { xs: 1, sm: 2 },
+                  ml: "auto",
+                  flexShrink: 0,
                 }}
               >
+                {/* Desktop Search - right before student info */}
+                {!isTablet && (
+                  <Box sx={{ width: 360 }}>
+                    <SearchBar variant="header" />
+                  </Box>
+                )}
+
                 {/* Student Info */}
                 {!isTablet && (
                   <Stack
@@ -134,15 +147,47 @@ function Header() {
             )
           ) : (
             // Public User UI - Login button
-            <Button
-              variant="contained"
-              size={isMobile ? "small" : "medium"}
-              onClick={() => setLoginModalOpen(true)}
+            <Box
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: { xs: 1, sm: 2 },
+                ml: "auto",
+              }}
             >
-              Log In
-            </Button>
+              {/* Desktop Search - right before login */}
+              {!isTablet && (
+                <Box sx={{ width: 360 }}>
+                  <SearchBar variant="header" />
+                </Box>
+              )}
+              <Button
+                variant="contained"
+                size={isMobile ? "small" : "medium"}
+                onClick={() => setLoginModalOpen(true)}
+              >
+                Log In
+              </Button>
+            </Box>
           )}
         </Toolbar>
+
+        {/* Search Bar for Tablet and Mobile - Below Header */}
+        {isTablet && (
+          <Box
+            sx={{
+              px: { xs: 1, sm: 2 },
+              pb: 1.5,
+              pt: 0.5,
+              borderBottom: `1px solid ${muiTheme.palette.divider}`,
+              bgcolor: "background.paper",
+            }}
+          >
+            <Container maxWidth="lg" disableGutters>
+              <SearchBar variant="mobile" />
+            </Container>
+          </Box>
+        )}
       </AppBar>
 
       {/* Login Modal */}
