@@ -2,8 +2,6 @@ import {
   Grid,
   Stack,
   Typography,
-  Card,
-  CardContent,
   Button,
   Dialog,
   DialogTitle,
@@ -14,6 +12,7 @@ import {
   Alert,
   Snackbar,
   IconButton,
+  MenuItem,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
@@ -24,15 +23,25 @@ import { useAdminUsers } from "../hooks/useAdminUsers";
 import { supabase } from "../services/supabase/client";
 import UsersTable from "../components/admin/UsersTable";
 import CoursesTable from "../components/admin/CoursesTable";
+import StatCard from "../components/admin/StatCard";
 
 function AdminDashboardPage() {
-  const { createCourse } = useCourses();
-  const { users, fetchUsers, deleteUser: deleteUserFromHook, loading: usersLoading } = useAdminUsers();
+  const {
+    courses,
+    createCourse,
+    deleteCourse: deleteCourseFromHook,
+    loading: coursesLoading,
+    fetchCourses,
+  } = useCourses();
+  const {
+    users,
+    fetchUsers,
+    deleteUser: deleteUserFromHook,
+    loading: usersLoading,
+  } = useAdminUsers();
   
   // View state
   const [view, setView] = useState("dashboard"); // dashboard, users, courses
-  const [userStats, setUserStats] = useState(users.length);
-  const [courseStats, setCourseStats] = useState(0);
   
   // Course form state
   const [openDialog, setOpenDialog] = useState(false);
@@ -59,6 +68,7 @@ function AdminDashboardPage() {
     email: "",
     password: "",
     rollnumber: "",
+    role: "student",
   });
 
   // Toast/Snackbar state
@@ -95,6 +105,7 @@ function AdminDashboardPage() {
       email: "",
       password: "",
       rollnumber: "",
+      role: "student",
     });
     setOpenUserDialog(true);
   };
@@ -135,7 +146,7 @@ function AdminDashboardPage() {
     if (window.confirm("Are you sure you want to delete this user?")) {
       try {
         await deleteUserFromHook(userId);
-        setUserStats((prev) => prev - 1);
+        await fetchUsers();
         showToast("User deleted successfully!");
       } catch (err) {
         showToast(err.message || "Failed to delete user", "error");
@@ -143,10 +154,15 @@ function AdminDashboardPage() {
     }
   };
 
-  // Placeholder for deleting courses (would need implementation in useCourses)
-  const handleDeleteCourse = (courseId) => {
+  const handleDeleteCourse = async (courseId) => {
     if (window.confirm("Are you sure you want to delete this course?")) {
-      showToast("Course deletion not yet implemented", "info");
+      try {
+        await deleteCourseFromHook(courseId);
+        await fetchCourses();
+        showToast("Course deleted successfully!");
+      } catch (err) {
+        showToast(err.message || "Failed to delete course", "error");
+      }
     }
   };
 
@@ -187,7 +203,7 @@ function AdminDashboardPage() {
 
       await createCourse(courseData);
       setOpenDialog(false);
-      setCourseStats((prev) => prev + 1);
+      await fetchCourses();
       showToast("Course added successfully!");
     } catch (err) {
       setFormError(err.message || "Failed to add course");
@@ -205,7 +221,8 @@ function AdminDashboardPage() {
       !userFormData.name ||
       !userFormData.email ||
       !userFormData.password ||
-      !userFormData.rollnumber
+      !userFormData.rollnumber ||
+      !userFormData.role
     ) {
       setUserFormError("Please fill in all required fields");
       return;
@@ -233,7 +250,7 @@ function AdminDashboardPage() {
             email: userFormData.email,
             password: userFormData.password,
             rollnumber: userFormData.rollnumber,
-            role: "student",
+            role: userFormData.role,
           },
         ])
         .select();
@@ -241,7 +258,6 @@ function AdminDashboardPage() {
       if (error) throw new Error(error.message);
 
       setOpenUserDialog(false);
-      setUserStats((prev) => prev + 1);
       await fetchUsers();
       showToast("User added successfully!");
     } catch (err) {
@@ -265,83 +281,31 @@ function AdminDashboardPage() {
             </Typography>
           </Stack>
 
-          <Grid container spacing={3}>
+          <Grid container spacing={2}>
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Card
-                sx={{
-                  cursor: "pointer",
-                  transition: "transform 0.2s, box-shadow 0.2s",
-                  "&:hover": {
-                    transform: "translateY(-4px)",
-                    boxShadow: 4,
-                  },
-                }}
+              <StatCard
+                label="Total Users"
+                value={users.length}
+                loading={usersLoading}
                 onClick={() => setView("users")}
-              >
-                <CardContent>
-                  <Typography color="text.secondary" gutterBottom>
-                    Total Users
-                  </Typography>
-                  <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                    {users.length}
-                  </Typography>
-                  <Typography variant="caption" color="primary" sx={{ mt: 1, display: "block" }}>
-                    Click to view users
-                  </Typography>
-                </CardContent>
-              </Card>
+              />
             </Grid>
 
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Card
-                sx={{
-                  cursor: "pointer",
-                  transition: "transform 0.2s, box-shadow 0.2s",
-                  "&:hover": {
-                    transform: "translateY(-4px)",
-                    boxShadow: 4,
-                  },
-                }}
+              <StatCard
+                label="Active Courses"
+                value={courses.length}
+                loading={coursesLoading}
                 onClick={() => setView("courses")}
-              >
-                <CardContent>
-                  <Typography color="text.secondary" gutterBottom>
-                    Active Courses
-                  </Typography>
-                  <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                    {courseStats}
-                  </Typography>
-                  <Typography variant="caption" color="primary" sx={{ mt: 1, display: "block" }}>
-                    Click to view courses
-                  </Typography>
-                </CardContent>
-              </Card>
+              />
             </Grid>
 
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Card>
-                <CardContent>
-                  <Typography color="text.secondary" gutterBottom>
-                    New Signups (24h)
-                  </Typography>
-                  <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                    43
-                  </Typography>
-                </CardContent>
-              </Card>
+              <StatCard label="New Signups (24h)" value={43} />
             </Grid>
 
             <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-              <Card>
-                <CardContent>
-                  <Typography color="text.secondary" gutterBottom>
-                    Pending Reviews
-                  </Typography>
-                  <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                    17
-                  </Typography>
-                </CardContent>
-              </Card>
+              <StatCard label="Pending Reviews" value={17} />
             </Grid>
           </Grid>
         </>
@@ -408,9 +372,9 @@ function AdminDashboardPage() {
           </Stack>
 
           <CoursesTable
-            courses={[]} // Will fetch from Supabase in the future
+            courses={courses}
             onDelete={handleDeleteCourse}
-            loading={loading}
+            loading={coursesLoading}
           />
         </>
       )}
@@ -602,6 +566,20 @@ function AdminDashboardPage() {
               placeholder="e.g., 23B081"
               disabled={userFormLoading}
             />
+
+            <TextField
+              select
+              fullWidth
+              label="Role *"
+              name="role"
+              value={userFormData.role}
+              onChange={handleUserInputChange}
+              disabled={userFormLoading}
+            >
+              <MenuItem value="student">Student</MenuItem>
+              <MenuItem value="trainer">Trainer</MenuItem>
+              <MenuItem value="admin">Admin</MenuItem>
+            </TextField>
 
             <Typography variant="caption" color="text.secondary">
               * = Required fields
