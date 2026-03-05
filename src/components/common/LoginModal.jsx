@@ -14,16 +14,18 @@ import {
 import CloseIcon from "@mui/icons-material/Close";
 import SchoolIcon from "@mui/icons-material/School";
 import { useAuth } from "../../contexts/AuthContext";
+import { useSupAuth } from "../../hooks/useSupAuth";
 
 function LoginModal({ open, onClose }) {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const { loginUser, loading: authLoading, error: authError } = useSupAuth();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [success, setSuccess] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -36,39 +38,47 @@ function LoginModal({ open, onClose }) {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    setLoading(true);
     setError("");
+    setSuccess(false);
 
+    // Client-side validation
     if (!formData.email || !formData.password) {
       setError("Please fill in all fields");
-      setLoading(false);
       return;
     }
 
     if (!formData.email.includes("@")) {
       setError("Please enter a valid email");
-      setLoading(false);
       return;
     }
 
-    try {
-      login({
-        email: formData.email,
-        password: formData.password,
-      });
+    // Call Supabase authentication
+    const profile = await loginUser(formData.email, formData.password);
 
-      onClose(); // Close the modal
-      navigate("/dashboard");
-    } catch (err) {
-      setError("Login failed. Please try again.");
-    } finally {
-      setLoading(false);
+    if (authError) {
+      setError(authError);
+      return;
+    }
+
+    if (profile) {
+      // Login successful
+      setSuccess(true);
+      login(profile);
+      
+      // Close modal and navigate after a short delay to show success
+      setTimeout(() => {
+        onClose();
+        navigate("/dashboard");
+      }, 500);
+    } else {
+      setError("Invalid credentials. Please try again.");
     }
   };
 
   const handleClose = () => {
     setFormData({ email: "", password: "" });
     setError("");
+    setSuccess(false);
     onClose();
   };
 
@@ -118,6 +128,7 @@ function LoginModal({ open, onClose }) {
           </Box>
 
           {error && <Alert severity="error">{error}</Alert>}
+          {success && <Alert severity="success">Login successful! Redirecting...</Alert>}
 
           <Box component="form" onSubmit={handleLogin} noValidate>
             <Stack spacing={2}>
@@ -129,7 +140,7 @@ function LoginModal({ open, onClose }) {
                 value={formData.email}
                 onChange={handleChange}
                 placeholder="student@college.edu"
-                disabled={loading}
+                disabled={authLoading || success}
               />
 
               <TextField
@@ -140,7 +151,7 @@ function LoginModal({ open, onClose }) {
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="Enter your password"
-                disabled={loading}
+                disabled={authLoading || success}
               />
 
               <Button
@@ -148,10 +159,10 @@ function LoginModal({ open, onClose }) {
                 variant="contained"
                 size="large"
                 onClick={handleLogin}
-                disabled={loading}
+                disabled={authLoading || success}
                 sx={{ mt: 2 }}
               >
-                {loading ? "Signing in..." : "Sign In"}
+                {authLoading ? "Signing in..." : success ? "Success!" : "Sign In"}
               </Button>
             </Stack>
           </Box>
@@ -161,7 +172,7 @@ function LoginModal({ open, onClose }) {
             color="text.secondary"
             sx={{ textAlign: "center" }}
           >
-            Demo: Use any email and password to login
+            Sign in with your college credentials
           </Typography>
         </Stack>
       </DialogContent>
