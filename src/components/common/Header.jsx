@@ -23,7 +23,11 @@ function Header() {
   const muiTheme = useTheme();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
-  const { isOpen: loginModalOpen, openLoginModal, closeLoginModal } = useLoginModal();
+  const {
+    isOpen: loginModalOpen,
+    openLoginModal,
+    closeLoginModal,
+  } = useLoginModal();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(muiTheme.breakpoints.down("md"));
 
@@ -63,16 +67,16 @@ function Header() {
             }}
             onClick={() => navigate("/")}
           >
-                      <Box
-            component="img"
-            src={"logo2.jpg"}
-            alt="EduStream Logo"
-            sx={{
-              height: { xs: 28, sm: 32 },
-              width: "auto",
-            }}
-/>
-            
+            <Box
+              component="img"
+              src={"logo2.jpg"}
+              alt="EduStream Logo"
+              sx={{
+                height: { xs: 28, sm: 32 },
+                width: "auto",
+              }}
+            />
+
             <Typography
               variant="h6"
               component="div"
@@ -192,10 +196,7 @@ function Header() {
       </AppBar>
 
       {/* Login Modal */}
-      <LoginModal
-        open={loginModalOpen}
-        onClose={closeLoginModal}
-      />
+      <LoginModal open={loginModalOpen} onClose={closeLoginModal} />
     </>
   );
 }
