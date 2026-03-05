@@ -1,65 +1,63 @@
-import { createContext, useContext, useState, useCallback, useEffect } from 'react'
+import {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useEffect,
+} from "react";
 
-const AuthContext = createContext()
+const AuthContext = createContext();
 
 export function useAuth() {
-  const context = useContext(AuthContext)
+  const context = useContext(AuthContext);
   if (!context) {
-    throw new Error('useAuth must be used within AuthProvider')
+    throw new Error("useAuth must be used within AuthProvider");
   }
-  return context
+  return context;
 }
 
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [user, setUser] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Load user from localStorage on mount
   useEffect(() => {
-    const storedUser = localStorage.getItem('user')
+    const storedUser = localStorage.getItem("user");
     if (storedUser) {
       try {
-        setUser(JSON.parse(storedUser))
+        setUser(JSON.parse(storedUser));
       } catch (error) {
-        console.error('Failed to parse stored user:', error)
-        localStorage.removeItem('user')
+        console.error("Failed to parse stored user:", error);
+        localStorage.removeItem("user");
       }
-    } else {
-      // Auto-login with demo user for first-time visitors
-      const demoUser = {
-        id: '1',
-        name: 'John Doe',
-        rollNumber: '2024001',
-        email: 'john@example.com',
-      }
-      setUser(demoUser)
-      localStorage.setItem('user', JSON.stringify(demoUser))
     }
-    setIsLoading(false)
-  }, [])
+    setIsLoading(false);
+  }, []);
 
   const login = useCallback((userData) => {
     const userWithDefaults = {
-      id: userData.id || '1',
-      name: userData.name || 'John Doe',
-      rollNumber: userData.rollNumber || '2024001',
-      email: userData.email || 'john@example.com',
+      id: userData.id || "1",
+      name: userData.name || "John Doe",
+      rollNumber: userData.rollNumber || "2024001",
+      email: userData.email || "john@example.com",
       ...userData,
-    }
-    setUser(userWithDefaults)
-    localStorage.setItem('user', JSON.stringify(userWithDefaults))
-  }, [])
+    };
+    setUser(userWithDefaults);
+    localStorage.setItem("user", JSON.stringify(userWithDefaults));
+  }, []);
 
   const logout = useCallback(() => {
-    setUser(null)
-    localStorage.removeItem('user')
-  }, [])
+    setUser(null);
+    localStorage.removeItem("user");
+  }, []);
 
-  const isAuthenticated = Boolean(user)
+  const isAuthenticated = Boolean(user);
 
   return (
-    <AuthContext.Provider value={{ user, isAuthenticated, login, logout, isLoading }}>
+    <AuthContext.Provider
+      value={{ user, isAuthenticated, login, logout, isLoading }}
+    >
       {!isLoading && children}
     </AuthContext.Provider>
-  )
+  );
 }

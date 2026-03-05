@@ -69,7 +69,7 @@ function ProfilePage() {
 
             {/* Profile Information */}
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   fullWidth
                   label="Full Name"
@@ -80,7 +80,7 @@ function ProfilePage() {
                 />
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   fullWidth
                   label="Roll Number"
@@ -91,7 +91,7 @@ function ProfilePage() {
                 />
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <TextField
                   fullWidth
                   label="Email"
