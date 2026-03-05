@@ -13,7 +13,9 @@ export const useLessons = () => {
   // GET LESSONS BY SECTION
   // -------------------------
   const fetchLessons = async (sectionId) => {
+    console.log({ sectionId });
     setLoading(true);
+    setError(null);
 
     const { data, error } = await supabase
       .from("course_lessons")
@@ -23,11 +25,14 @@ export const useLessons = () => {
 
     if (error) {
       setError(error.message);
+      setLoading(false);
+      return [];
     } else {
-      setLessons(data);
+      const nextLessons = data || [];
+      setLessons(nextLessons);
+      setLoading(false);
+      return nextLessons;
     }
-
-    setLoading(false);
   };
 
   // -------------------------

@@ -14,6 +14,7 @@ export const useCourseSections = () => {
   // -------------------------
   const fetchSections = async (courseId) => {
     setLoading(true);
+    setError(null);
 
     const { data, error } = await supabase
       .from("course_sections")
@@ -23,11 +24,14 @@ export const useCourseSections = () => {
 
     if (error) {
       setError(error.message);
+      setLoading(false);
+      return [];
     } else {
-      setSections(data);
+      const nextSections = data || [];
+      setSections(nextSections);
+      setLoading(false);
+      return nextSections;
     }
-
-    setLoading(false);
   };
 
   // -------------------------

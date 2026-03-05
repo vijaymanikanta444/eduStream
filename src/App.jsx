@@ -6,6 +6,7 @@ import {
 } from "react-router-dom";
 import AppLayout from "./layouts/AppLayout";
 import DashboardPage from "./pages/DashboardPage";
+import CoursePage from "./pages/CoursePage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import ProfilePage from "./pages/ProfilePage";
 import SettingsPage from "./pages/SettingsPage";
@@ -55,6 +56,17 @@ function App() {
             <AppLayout>
               <DashboardPage />
             </AppLayout>
+          }
+        />
+
+        <Route
+          path="/course/:id"
+          element={
+            <ProtectedRoute>
+              <AppLayout fullWidth>
+                <CoursePage />
+              </AppLayout>
+            </ProtectedRoute>
           }
         />
 

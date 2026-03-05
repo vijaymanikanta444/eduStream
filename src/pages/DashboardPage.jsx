@@ -46,14 +46,14 @@ function DashboardPage() {
   }, [pendingCourseId, isAuthenticated, openLoginModal]);
 
   // Determine which courses to show
-  const displayedCourses =
-    searchQuery && searchResults.length > 0 ? searchResults : allCourses;
+  const displayedCourses = searchQuery ? searchResults : allCourses;
 
   // Categorize courses
   const categorizedResults = categorizeCourses(displayedCourses);
 
   const hasSearchResults = searchQuery && searchResults.length > 0;
-  const hasSearchWithNoResults = searchQuery && searchResults.length === 0;
+  const hasSearchWithNoResults =
+    searchQuery && searchResults.length === 0 && !isSearching;
 
   // Handle course click
   const handleCourseClick = (courseId) => {

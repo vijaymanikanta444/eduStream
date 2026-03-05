@@ -23,11 +23,21 @@ function SearchBar({ variant = "header" }) {
     isSearching,
   } = useSearch();
   const [localQuery, setLocalQuery] = useState(searchQuery || "");
+  const [debounceTimer, setDebounceTimer] = useState(null);
 
   // Update local query when context changes
   useEffect(() => {
     setLocalQuery(searchQuery);
   }, [searchQuery]);
+
+  // Cleanup debounce timer on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceTimer) {
+        clearTimeout(debounceTimer);
+      }
+    };
+  }, [debounceTimer]);
 
   const handleSearch = async (query) => {
     const trimmedQuery = query.trim();
@@ -35,6 +45,7 @@ function SearchBar({ variant = "header" }) {
     if (trimmedQuery === "") {
       updateSearchQuery("");
       updateSearchResults([]);
+      setSearchingStatus(false);
       return;
     }
 
@@ -55,8 +66,10 @@ function SearchBar({ variant = "header" }) {
       const results = data || [];
       updateSearchResults(results);
 
-      // Don't auto-navigate - let users search from any page
-      // Results will show on current page (home or dashboard)
+      // Navigate to home/dashboard if not already there
+      if (location.pathname !== "/" && location.pathname !== "/dashboard") {
+        navigate("/");
+      }
     } catch (error) {
       console.error("Search error:", error);
       updateSearchResults([]);
@@ -66,7 +79,20 @@ function SearchBar({ variant = "header" }) {
   };
 
   const handleInputChange = (e) => {
-    setLocalQuery(e.target.value);
+    const newValue = e.target.value;
+    setLocalQuery(newValue);
+
+    // Clear existing timer
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
+
+    // Set new timer for debounced search
+    const timer = setTimeout(() => {
+      handleSearch(newValue);
+    }, 500); // 500ms delay
+
+    setDebounceTimer(timer);
   };
 
   const handleKeyPress = (e) => {
@@ -79,6 +105,10 @@ function SearchBar({ variant = "header" }) {
     setLocalQuery("");
     updateSearchQuery("");
     updateSearchResults([]);
+    setSearchingStatus(false);
+    if (debounceTimer) {
+      clearTimeout(debounceTimer);
+    }
   };
 
   const handleSearchClick = () => {

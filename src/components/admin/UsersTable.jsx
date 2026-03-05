@@ -43,7 +43,9 @@ function UsersTable({ users, onDelete, loading }) {
             <TableRow key={user.id} hover>
               <TableCell>{user.name}</TableCell>
               <TableCell>{user.email}</TableCell>
-              <TableCell>{user.rollNumber || user.rollnumber || "-"}</TableCell>
+              <TableCell>
+                {user.roll_number || user.rollNumber || user.rollnumber || "-"}
+              </TableCell>
               <TableCell>
                 <Chip
                   label={user.role || "student"}
