@@ -46,7 +46,7 @@ function UserMenu({
 
   const handleLogout = () => {
     logout();
-    navigate("/login");
+    navigate("/");
     handleClose();
   };
 
