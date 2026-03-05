@@ -8,13 +8,26 @@ import {
   Chip,
   Container,
 } from "@mui/material";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import CourseCard from "../components/common/CourseCard";
+import CourseCardSkeleton from "../components/common/CourseCardSkeleton";
 import { useAuth } from "../contexts/AuthContext";
 import { useSearch } from "../contexts/SearchContext";
 import { useLoginModal } from "../contexts/LoginModalContext";
-import { categorizeCourses, getAllCourses } from "../services/courseApi";
+import { useCourses } from "../hooks/useCourses";
+
+const categorizeCourses = (courses = []) => {
+  const categorized = {};
+  courses.forEach((course) => {
+    const category = course.category || "Uncategorized";
+    if (!categorized[category]) {
+      categorized[category] = [];
+    }
+    categorized[category].push(course);
+  });
+  return categorized;
+};
 
 function DashboardPage() {
   const navigate = useNavigate();
@@ -22,8 +35,7 @@ function DashboardPage() {
   const { user, isAuthenticated } = useAuth();
   const { searchQuery, searchResults, isSearching } = useSearch();
   const { openLoginModal } = useLoginModal();
-  const [allCourses, setAllCourses] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const { courses: allCourses, loading: coursesLoading } = useCourses();
   const pendingCourseId = searchParams.get("courseId");
 
   // Open login modal if there's a pending course and user is not authenticated
@@ -32,21 +44,6 @@ function DashboardPage() {
       openLoginModal();
     }
   }, [pendingCourseId, isAuthenticated, openLoginModal]);
-
-  // Fetch all courses on mount
-  useEffect(() => {
-    const fetchCourses = async () => {
-      try {
-        const courses = await getAllCourses();
-        setAllCourses(courses);
-      } catch (error) {
-        console.error("Error fetching courses:", error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchCourses();
-  }, []);
 
   // Determine which courses to show
   const displayedCourses =
@@ -193,11 +190,18 @@ function DashboardPage() {
         </>
       )}
 
-      {/* Show loading state */}
-      {isSearching && (
-        <Box sx={{ textAlign: "center", py: 4 }}>
-          <Typography color="text.secondary">Searching courses...</Typography>
-        </Box>
+      {/* Show shimmer loading state */}
+      {(isSearching || coursesLoading) && (
+        <Grid container spacing={3}>
+          {Array.from({ length: 6 }).map((_, index) => (
+            <Grid
+              size={{ xs: 12, sm: 6, md: 4 }}
+              key={`course-skeleton-${index}`}
+            >
+              <CourseCardSkeleton />
+            </Grid>
+          ))}
+        </Grid>
       )}
 
       {/* Show no results message */}
@@ -213,7 +217,7 @@ function DashboardPage() {
       )}
 
       {/* Show categorized courses */}
-      {!hasSearchWithNoResults && !isSearching && (
+      {!hasSearchWithNoResults && !isSearching && !coursesLoading && (
         <Stack spacing={4}>
           {Object.entries(categorizedResults).map(([category, courses]) => (
             <Box key={category}>

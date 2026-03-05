@@ -39,10 +39,10 @@ function AdminDashboardPage() {
     deleteUser: deleteUserFromHook,
     loading: usersLoading,
   } = useAdminUsers();
-  
+
   // View state
   const [view, setView] = useState("dashboard"); // dashboard, users, courses
-  
+
   // Course form state
   const [openDialog, setOpenDialog] = useState(false);
   const [formError, setFormError] = useState("");
@@ -409,14 +409,22 @@ function AdminDashboardPage() {
             />
 
             <TextField
+              select
               fullWidth
               label="Category *"
               name="category"
               value={formData.category}
               onChange={handleInputChange}
-              placeholder="e.g., Development, Data Science, Marketing"
               disabled={loading}
-            />
+            >
+              <MenuItem value="Development">Development</MenuItem>
+              <MenuItem value="Data Science">Data Science</MenuItem>
+              <MenuItem value="Marketing">Marketing</MenuItem>
+              <MenuItem value="Design">Design</MenuItem>
+              <MenuItem value="Business">Business</MenuItem>
+              <MenuItem value="Health">Health</MenuItem>
+              <MenuItem value="Finance">Finance</MenuItem>
+            </TextField>
 
             <TextField
               fullWidth
@@ -439,14 +447,19 @@ function AdminDashboardPage() {
             />
 
             <TextField
+              select
               fullWidth
-              label="Level"
+              label="Level *"
               name="level"
               value={formData.level}
               onChange={handleInputChange}
-              placeholder="Beginner, Intermediate, Advanced"
               disabled={loading}
-            />
+            >
+              <MenuItem value="Beginner">Beginner</MenuItem>
+              <MenuItem value="Intermediate">Intermediate</MenuItem>
+              <MenuItem value="Advanced">Advanced</MenuItem>
+              <MenuItem value="Expert">Expert</MenuItem>
+            </TextField>
 
             <TextField
               fullWidth
@@ -490,11 +503,7 @@ function AdminDashboardPage() {
           <Button onClick={handleCloseDialog} disabled={loading}>
             Cancel
           </Button>
-          <Button
-            onClick={handleSubmit}
-            variant="contained"
-            disabled={loading}
-          >
+          <Button onClick={handleSubmit} variant="contained" disabled={loading}>
             {loading ? "Adding..." : "Add Course"}
           </Button>
         </DialogActions>

@@ -9,8 +9,8 @@ import {
 import SearchIcon from "@mui/icons-material/Search";
 import ClearIcon from "@mui/icons-material/Clear";
 import { useSearch } from "../../contexts/SearchContext";
-import { searchCourses } from "../../services/courseApi";
 import { useNavigate, useLocation } from "react-router-dom";
+import { supabase } from "../../services/supabase/client";
 
 function SearchBar({ variant = "header" }) {
   const navigate = useNavigate();
@@ -42,7 +42,17 @@ function SearchBar({ variant = "header" }) {
     setSearchingStatus(true);
 
     try {
-      const results = await searchCourses(trimmedQuery);
+      const { data, error } = await supabase
+        .from("courses")
+        .select("*")
+        .or(
+          `title.ilike.%${trimmedQuery}%,instructor.ilike.%${trimmedQuery}%,category.ilike.%${trimmedQuery}%,description.ilike.%${trimmedQuery}%`,
+        )
+        .order("created_at", { ascending: false });
+
+      if (error) throw error;
+
+      const results = data || [];
       updateSearchResults(results);
 
       // Don't auto-navigate - let users search from any page
