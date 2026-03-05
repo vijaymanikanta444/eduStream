@@ -20,7 +20,6 @@ import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useState } from "react";
 import { useCourses } from "../hooks/useCourses";
 import { useAdminUsers } from "../hooks/useAdminUsers";
-import { supabase } from "../services/supabase/client";
 import UsersTable from "../components/admin/UsersTable";
 import CoursesTable from "../components/admin/CoursesTable";
 import StatCard from "../components/admin/StatCard";
@@ -36,6 +35,7 @@ function AdminDashboardPage() {
   const {
     users,
     fetchUsers,
+    createUser,
     deleteUser: deleteUserFromHook,
     loading: usersLoading,
   } = useAdminUsers();
@@ -241,21 +241,13 @@ function AdminDashboardPage() {
     setUserFormLoading(true);
 
     try {
-      // Insert user into profiles table
-      const { data, error } = await supabase
-        .from("profiles")
-        .insert([
-          {
-            name: userFormData.name,
-            email: userFormData.email,
-            password: userFormData.password,
-            rollnumber: userFormData.rollnumber,
-            role: userFormData.role,
-          },
-        ])
-        .select();
-
-      if (error) throw new Error(error.message);
+      await createUser({
+        name: userFormData.name,
+        email: userFormData.email,
+        password: userFormData.password,
+        rollnumber: userFormData.rollnumber,
+        role: userFormData.role,
+      });
 
       setOpenUserDialog(false);
       await fetchUsers();
