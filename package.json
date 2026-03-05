@@ -3,6 +3,13 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "contributors": [
+    {
+      "name": "Vijaya Manikanta Thikkani",
+      "email": "vijayakp444@gmail.com",
+      "url": "https://github.com/vijaymanikanta444"
+    }
+  ],
   "scripts": {
     "dev": "vite",
     "build": "vite build",
