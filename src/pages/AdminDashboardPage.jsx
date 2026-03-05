@@ -13,20 +13,30 @@ import {
   Box,
   Alert,
   Snackbar,
+  IconButton,
 } from "@mui/material";
 import AddIcon from "@mui/icons-material/Add";
 import PersonAddIcon from "@mui/icons-material/PersonAdd";
+import ArrowBackIcon from "@mui/icons-material/ArrowBack";
 import { useState } from "react";
 import { useCourses } from "../hooks/useCourses";
+import { useAdminUsers } from "../hooks/useAdminUsers";
 import { supabase } from "../services/supabase/client";
+import UsersTable from "../components/admin/UsersTable";
+import CoursesTable from "../components/admin/CoursesTable";
 
 function AdminDashboardPage() {
-  const { createCourse, error: courseError } = useCourses();
+  const { createCourse } = useCourses();
+  const { users, fetchUsers, deleteUser: deleteUserFromHook, loading: usersLoading } = useAdminUsers();
+  
+  // View state
+  const [view, setView] = useState("dashboard"); // dashboard, users, courses
+  const [userStats, setUserStats] = useState(users.length);
+  const [courseStats, setCourseStats] = useState(0);
   
   // Course form state
   const [openDialog, setOpenDialog] = useState(false);
   const [formError, setFormError] = useState("");
-  const [formSuccess, setFormSuccess] = useState("");
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     title: "",
@@ -43,7 +53,7 @@ function AdminDashboardPage() {
   // User form state
   const [openUserDialog, setOpenUserDialog] = useState(false);
   const [userFormError, setUserFormError] = useState("");
-  const [userLoading, setUserLoading] = useState(false);
+  const [userFormLoading, setUserFormLoading] = useState(false);
   const [userFormData, setUserFormData] = useState({
     name: "",
     email: "",
@@ -60,7 +70,6 @@ function AdminDashboardPage() {
 
   const handleOpenDialog = () => {
     setFormError("");
-    setFormSuccess("");
     setFormData({
       title: "",
       instructor: "",
@@ -122,10 +131,28 @@ function AdminDashboardPage() {
     }));
   };
 
+  const handleDeleteUser = async (userId) => {
+    if (window.confirm("Are you sure you want to delete this user?")) {
+      try {
+        await deleteUserFromHook(userId);
+        setUserStats((prev) => prev - 1);
+        showToast("User deleted successfully!");
+      } catch (err) {
+        showToast(err.message || "Failed to delete user", "error");
+      }
+    }
+  };
+
+  // Placeholder for deleting courses (would need implementation in useCourses)
+  const handleDeleteCourse = (courseId) => {
+    if (window.confirm("Are you sure you want to delete this course?")) {
+      showToast("Course deletion not yet implemented", "info");
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError("");
-    setFormSuccess("");
 
     // Validation
     if (
@@ -160,6 +187,7 @@ function AdminDashboardPage() {
 
       await createCourse(courseData);
       setOpenDialog(false);
+      setCourseStats((prev) => prev + 1);
       showToast("Course added successfully!");
     } catch (err) {
       setFormError(err.message || "Failed to add course");
@@ -193,7 +221,7 @@ function AdminDashboardPage() {
       return;
     }
 
-    setUserLoading(true);
+    setUserFormLoading(true);
 
     try {
       // Insert user into profiles table
@@ -213,103 +241,179 @@ function AdminDashboardPage() {
       if (error) throw new Error(error.message);
 
       setOpenUserDialog(false);
+      setUserStats((prev) => prev + 1);
+      await fetchUsers();
       showToast("User added successfully!");
     } catch (err) {
       setUserFormError(err.message || "Failed to add user");
     } finally {
-      setUserLoading(false);
+      setUserFormLoading(false);
     }
   };
 
   return (
     <Stack spacing={3}>
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-        spacing={2}
-      >
-        <Stack spacing={1}>
-          <Typography variant="h4" sx={{ fontWeight: 700 }}>
-            Admin Dashboard
-          </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Manage platform operations and monitor system activity
-          </Typography>
-        </Stack>
-        <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-          <Button
-            variant="contained"
-            startIcon={<AddIcon />}
-            onClick={handleOpenDialog}
-            size="large"
+      {/* Dashboard View */}
+      {view === "dashboard" && (
+        <>
+          <Stack spacing={1}>
+            <Typography variant="h4" sx={{ fontWeight: 700 }}>
+              Admin Dashboard
+            </Typography>
+            <Typography variant="body1" color="text.secondary">
+              Manage platform operations and monitor system activity
+            </Typography>
+          </Stack>
+
+          <Grid container spacing={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <Card
+                sx={{
+                  cursor: "pointer",
+                  transition: "transform 0.2s, box-shadow 0.2s",
+                  "&:hover": {
+                    transform: "translateY(-4px)",
+                    boxShadow: 4,
+                  },
+                }}
+                onClick={() => setView("users")}
+              >
+                <CardContent>
+                  <Typography color="text.secondary" gutterBottom>
+                    Total Users
+                  </Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                    {users.length}
+                  </Typography>
+                  <Typography variant="caption" color="primary" sx={{ mt: 1, display: "block" }}>
+                    Click to view users
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <Card
+                sx={{
+                  cursor: "pointer",
+                  transition: "transform 0.2s, box-shadow 0.2s",
+                  "&:hover": {
+                    transform: "translateY(-4px)",
+                    boxShadow: 4,
+                  },
+                }}
+                onClick={() => setView("courses")}
+              >
+                <CardContent>
+                  <Typography color="text.secondary" gutterBottom>
+                    Active Courses
+                  </Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                    {courseStats}
+                  </Typography>
+                  <Typography variant="caption" color="primary" sx={{ mt: 1, display: "block" }}>
+                    Click to view courses
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <Card>
+                <CardContent>
+                  <Typography color="text.secondary" gutterBottom>
+                    New Signups (24h)
+                  </Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                    43
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
+              <Card>
+                <CardContent>
+                  <Typography color="text.secondary" gutterBottom>
+                    Pending Reviews
+                  </Typography>
+                  <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                    17
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+        </>
+      )}
+
+      {/* Users View */}
+      {view === "users" && (
+        <>
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+            spacing={2}
           >
-            Add Course
-          </Button>
-          <Button
-            variant="outlined"
-            startIcon={<PersonAddIcon />}
-            onClick={handleOpenUserDialog}
-            size="large"
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <IconButton onClick={() => setView("dashboard")} size="small">
+                <ArrowBackIcon />
+              </IconButton>
+              <Typography variant="h4" sx={{ fontWeight: 700 }}>
+                Users Management
+              </Typography>
+            </Stack>
+            <Button
+              variant="contained"
+              startIcon={<PersonAddIcon />}
+              onClick={handleOpenUserDialog}
+            >
+              Add User
+            </Button>
+          </Stack>
+
+          <UsersTable
+            users={users}
+            onDelete={handleDeleteUser}
+            loading={usersLoading}
+          />
+        </>
+      )}
+
+      {/* Courses View */}
+      {view === "courses" && (
+        <>
+          <Stack
+            direction="row"
+            alignItems="center"
+            justifyContent="space-between"
+            spacing={2}
           >
-            Add User
-          </Button>
-        </Stack>
-      </Stack>
-
-      <Grid container spacing={3}>
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Card>
-            <CardContent>
-              <Typography color="text.secondary" gutterBottom>
-                Total Users
-              </Typography>
+            <Stack direction="row" alignItems="center" spacing={1}>
+              <IconButton onClick={() => setView("dashboard")} size="small">
+                <ArrowBackIcon />
+              </IconButton>
               <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                1,248
+                Courses Management
               </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
+            </Stack>
+            <Button
+              variant="contained"
+              startIcon={<AddIcon />}
+              onClick={handleOpenDialog}
+            >
+              Add Course
+            </Button>
+          </Stack>
 
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Card>
-            <CardContent>
-              <Typography color="text.secondary" gutterBottom>
-                Active Courses
-              </Typography>
-              <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                312
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Card>
-            <CardContent>
-              <Typography color="text.secondary" gutterBottom>
-                New Signups (24h)
-              </Typography>
-              <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                43
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid size={{ xs: 12, sm: 6, md: 3 }}>
-          <Card>
-            <CardContent>
-              <Typography color="text.secondary" gutterBottom>
-                Pending Reviews
-              </Typography>
-              <Typography variant="h4" sx={{ fontWeight: 700 }}>
-                17
-              </Typography>
-            </CardContent>
-          </Card>
-        </Grid>
-      </Grid>
+          <CoursesTable
+            courses={[]} // Will fetch from Supabase in the future
+            onDelete={handleDeleteCourse}
+            loading={loading}
+          />
+        </>
+      )}
 
       {/* Add Course Dialog */}
       <Dialog
@@ -464,7 +568,7 @@ function AdminDashboardPage() {
               value={userFormData.name}
               onChange={handleUserInputChange}
               placeholder="e.g., John Doe"
-              disabled={userLoading}
+              disabled={userFormLoading}
             />
 
             <TextField
@@ -475,7 +579,7 @@ function AdminDashboardPage() {
               value={userFormData.email}
               onChange={handleUserInputChange}
               placeholder="e.g., john@example.com"
-              disabled={userLoading}
+              disabled={userFormLoading}
             />
 
             <TextField
@@ -486,7 +590,7 @@ function AdminDashboardPage() {
               value={userFormData.password}
               onChange={handleUserInputChange}
               placeholder="Minimum 6 characters"
-              disabled={userLoading}
+              disabled={userFormLoading}
             />
 
             <TextField
@@ -496,7 +600,7 @@ function AdminDashboardPage() {
               value={userFormData.rollnumber}
               onChange={handleUserInputChange}
               placeholder="e.g., 23B081"
-              disabled={userLoading}
+              disabled={userFormLoading}
             />
 
             <Typography variant="caption" color="text.secondary">
@@ -505,15 +609,15 @@ function AdminDashboardPage() {
           </Stack>
         </DialogContent>
         <DialogActions sx={{ p: 2 }}>
-          <Button onClick={handleCloseUserDialog} disabled={userLoading}>
+          <Button onClick={handleCloseUserDialog} disabled={userFormLoading}>
             Cancel
           </Button>
           <Button
             onClick={handleUserSubmit}
             variant="contained"
-            disabled={userLoading}
+            disabled={userFormLoading}
           >
-            {userLoading ? "Adding..." : "Add User"}
+            {userFormLoading ? "Adding..." : "Add User"}
           </Button>
         </DialogActions>
       </Dialog>
