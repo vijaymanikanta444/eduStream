@@ -56,7 +56,7 @@ function LoginPage() {
         rollNumber: "2024001",
       });
 
-      navigate("/");
+      navigate("/dashboard");
     } catch (err) {
       setError("Login failed. Please try again.");
     } finally {

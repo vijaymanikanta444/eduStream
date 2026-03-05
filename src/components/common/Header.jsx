@@ -1,3 +1,4 @@
+import { useState } from "react";
 import {
   AppBar,
   Toolbar,
@@ -6,9 +7,11 @@ import {
   Stack,
   useMediaQuery,
   useTheme,
+  Button,
 } from "@mui/material";
 import SchoolIcon from "@mui/icons-material/School";
 import UserMenu from "./UserMenu";
+import LoginModal from "./LoginModal";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
 
@@ -18,6 +21,7 @@ function Header() {
   const { user, isAuthenticated } = useAuth();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(muiTheme.breakpoints.down("md"));
+  const [loginModalOpen, setLoginModalOpen] = useState(false);
 
   const studentInfo = user || {
     name: "Guest",
@@ -49,8 +53,9 @@ function Header() {
               display: "flex",
               alignItems: "center",
               gap: { xs: 0.5, sm: 1 },
+              cursor: "pointer",
             }}
-            onClick={() => navigate("/")}
+            onClick={() => navigate(isAuthenticated ? "/dashboard" : "/")}
           >
             <SchoolIcon
               sx={{
@@ -72,56 +77,74 @@ function Header() {
           </Box>
 
           {/* Right Section */}
-          {!isMobile ? (
-            <Box
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: { xs: 1, sm: 2 },
-              }}
-            >
-              {/* Student Info */}
-              {!isTablet && (
-                <Stack
-                  spacing={0}
-                  sx={{ textAlign: "right", minWidth: "100px" }}
-                >
-                  <Typography
-                    variant="subtitle2"
-                    sx={{
-                      fontWeight: 600,
-                      fontSize: "0.9rem",
-                    }}
+          {isAuthenticated ? (
+            // Authenticated User UI
+            !isMobile ? (
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: { xs: 1, sm: 2 },
+                }}
+              >
+                {/* Student Info */}
+                {!isTablet && (
+                  <Stack
+                    spacing={0}
+                    sx={{ textAlign: "right", minWidth: "100px" }}
                   >
-                    {studentInfo.name}
-                  </Typography>
-                  <Typography
-                    variant="caption"
-                    color="text.secondary"
-                    sx={{
-                      fontSize: "0.75rem",
-                    }}
-                  >
-                    {studentInfo.rollNumber}
-                  </Typography>
-                </Stack>
-              )}
+                    <Typography
+                      variant="subtitle2"
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: "0.9rem",
+                      }}
+                    >
+                      {studentInfo.name}
+                    </Typography>
+                    <Typography
+                      variant="caption"
+                      color="text.secondary"
+                      sx={{
+                        fontSize: "0.75rem",
+                      }}
+                    >
+                      {studentInfo.rollNumber}
+                    </Typography>
+                  </Stack>
+                )}
 
-              {/* Avatar */}
+                {/* Avatar */}
+                <UserMenu
+                  studentName={studentInfo.name}
+                  rollNumber={studentInfo.rollNumber}
+                />
+              </Box>
+            ) : (
+              /* Mobile - Avatar Only */
               <UserMenu
                 studentName={studentInfo.name}
                 rollNumber={studentInfo.rollNumber}
               />
-            </Box>
+            )
           ) : (
-            /* Mobile - Avatar Only */
-            <UserMenu
-              studentName={studentInfo.name}
-              rollNumber={studentInfo.rollNumber}
-            />
+            // Public User UI - Login button
+            <Button
+              variant="contained"
+              size={isMobile ? "small" : "medium"}
+              onClick={() => setLoginModalOpen(true)}
+            >
+              Log In
+            </Button>
           )}
         </Toolbar>
       </AppBar>
+
+      {/* Login Modal */}
+      <LoginModal
+        open={loginModalOpen}
+        onClose={() => setLoginModalOpen(false)}
+      />
     </>
   );
 }

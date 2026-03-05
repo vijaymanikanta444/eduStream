@@ -5,7 +5,8 @@ import {
   Navigate,
 } from "react-router-dom";
 import AppLayout from "./layouts/AppLayout";
-import HomePage from "./pages/HomePage";
+import PublicHomePage from "./pages/PublicHomePage";
+import DashboardPage from "./pages/DashboardPage";
 import LoginPage from "./pages/LoginPage";
 import ProfilePage from "./pages/ProfilePage";
 import SettingsPage from "./pages/SettingsPage";
@@ -27,19 +28,34 @@ function App() {
   return (
     <Router>
       <Routes>
+        {/* Public Home Page - No auth required */}
         <Route
-          path="/login"
+          path="/"
           element={
-            !isAuthenticated ? <LoginPage /> : <Navigate to="/" replace />
+            <AppLayout>
+              <PublicHomePage />
+            </AppLayout>
           }
         />
 
         <Route
-          path="/"
+          path="/login"
+          element={
+            !isAuthenticated ? (
+              <LoginPage />
+            ) : (
+              <Navigate to="/dashboard" replace />
+            )
+          }
+        />
+
+        {/* Protected Routes */}
+        <Route
+          path="/dashboard"
           element={
             <ProtectedRoute>
               <AppLayout>
-                <HomePage />
+                <DashboardPage />
               </AppLayout>
             </ProtectedRoute>
           }
