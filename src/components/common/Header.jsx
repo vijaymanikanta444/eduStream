@@ -15,6 +15,7 @@ import UserMenu from "./UserMenu";
 import LoginModal from "./LoginModal";
 import SearchBar from "./SearchBar";
 import { useAuth } from "../../contexts/AuthContext";
+import { useLoginModal } from "../../contexts/LoginModalContext";
 import { useNavigate } from "react-router-dom";
 import logo2 from "../../assets/logo2.jpg";
 
@@ -22,9 +23,9 @@ function Header() {
   const muiTheme = useTheme();
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
+  const { isOpen: loginModalOpen, openLoginModal, closeLoginModal } = useLoginModal();
   const isMobile = useMediaQuery(muiTheme.breakpoints.down("sm"));
   const isTablet = useMediaQuery(muiTheme.breakpoints.down("md"));
-  const [loginModalOpen, setLoginModalOpen] = useState(false);
 
   const studentInfo = user || {
     name: "Guest",
@@ -164,7 +165,7 @@ function Header() {
               <Button
                 variant="contained"
                 size={isMobile ? "small" : "medium"}
-                onClick={() => setLoginModalOpen(true)}
+                onClick={openLoginModal}
               >
                 Log In
               </Button>
@@ -193,7 +194,7 @@ function Header() {
       {/* Login Modal */}
       <LoginModal
         open={loginModalOpen}
-        onClose={() => setLoginModalOpen(false)}
+        onClose={closeLoginModal}
       />
     </>
   );

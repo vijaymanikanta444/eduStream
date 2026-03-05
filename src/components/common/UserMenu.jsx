@@ -13,7 +13,9 @@ import {
 } from "@mui/material";
 import PersonIcon from "@mui/icons-material/Person";
 import SettingsIcon from "@mui/icons-material/Settings";
+import AdminPanelSettingsIcon from "@mui/icons-material/AdminPanelSettings";
 import LogoutIcon from "@mui/icons-material/Logout";
+import BadgeIcon from "@mui/icons-material/Badge";
 import { useAuth } from "../../contexts/AuthContext";
 
 function UserMenu({
@@ -22,7 +24,7 @@ function UserMenu({
   avatarUrl,
 }) {
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { logout, isAdmin } = useAuth();
   const [anchorEl, setAnchorEl] = useState(null);
   const open = Boolean(anchorEl);
 
@@ -41,6 +43,11 @@ function UserMenu({
 
   const handleSettings = () => {
     navigate("/settings");
+    handleClose();
+  };
+
+  const handleAdminDashboard = () => {
+    navigate("/admin/dashboard");
     handleClose();
   };
 
@@ -108,12 +115,25 @@ function UserMenu({
         anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
       >
         <Box sx={{ px: 2, py: 1.5 }}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
-            {studentName}
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            {rollNumber}
-          </Typography>
+          <Stack direction="row" alignItems="center" spacing={1}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+              {studentName}
+            </Typography>
+            {isAdmin && (
+              <AdminPanelSettingsIcon
+                sx={{
+                  fontSize: 18,
+                  color: "primary.main",
+                  mt: 0.5,
+                }}
+              />
+            )}
+          </Stack>
+          {!isAdmin && (
+            <Typography variant="caption" color="text.secondary">
+              {rollNumber}
+            </Typography>
+          )}
         </Box>
 
         <Divider />
@@ -131,6 +151,15 @@ function UserMenu({
           </ListItemIcon>
           <ListItemText>Settings</ListItemText>
         </MenuItem>
+
+        {isAdmin && (
+          <MenuItem onClick={handleAdminDashboard}>
+            <ListItemIcon>
+              <AdminPanelSettingsIcon fontSize="small" />
+            </ListItemIcon>
+            <ListItemText>Admin Dashboard</ListItemText>
+          </MenuItem>
+        )}
 
         <Divider />
 

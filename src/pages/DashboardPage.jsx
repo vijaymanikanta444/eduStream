@@ -14,21 +14,55 @@ import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline";
 import StarIcon from "@mui/icons-material/Star";
 import PeopleIcon from "@mui/icons-material/People";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import ConnectionStatusCard from "../components/dashboard/ConnectionStatusCard";
 import { useAuth } from "../contexts/AuthContext";
 import { useSearch } from "../contexts/SearchContext";
-import { categorizeCourses } from "../services/courseApi";
+import { useLoginModal } from "../contexts/LoginModalContext";
+import { categorizeCourses, getAllCourses } from "../services/courseApi";
 
 function DashboardPage() {
-  const { user } = useAuth();
+  const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
   const { searchQuery, searchResults, isSearching } = useSearch();
+  const { openLoginModal } = useLoginModal();
+  const [allCourses, setAllCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Categorize search results
-  const categorizedResults =
-    searchResults.length > 0 ? categorizeCourses(searchResults) : {};
+  // Fetch all courses on mount
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const courses = await getAllCourses();
+        setAllCourses(courses);
+      } catch (error) {
+        console.error("Error fetching courses:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchCourses();
+  }, []);
+
+  // Determine which courses to show
+  const displayedCourses =
+    searchQuery && searchResults.length > 0 ? searchResults : allCourses;
+
+  // Categorize courses
+  const categorizedResults = categorizeCourses(displayedCourses);
 
   const hasSearchResults = searchQuery && searchResults.length > 0;
   const hasSearchWithNoResults = searchQuery && searchResults.length === 0;
+
+  // Handle course click
+  const handleCourseClick = (courseId) => {
+    if (!isAuthenticated) {
+      openLoginModal();
+    } else {
+      navigate(`/course/${courseId}`);
+    }
+  };
 
   return (
     <Stack spacing={3}>
@@ -36,17 +70,23 @@ function DashboardPage() {
         <Typography variant="h4" sx={{ fontWeight: 700 }}>
           {hasSearchResults
             ? `Search Results for "${searchQuery}"`
-            : `Welcome back, ${user?.name || "Student"}!`}
+            : isAuthenticated
+            ? `Welcome back, ${user?.name || "Student"}!`
+            : "Explore Our Courses"}
         </Typography>
         <Typography variant="body1" color="text.secondary">
           {hasSearchResults
-            ? `Found ${searchResults.length} course${searchResults.length !== 1 ? "s" : ""}`
-            : "Track your progress and continue learning"}
+            ? `Found ${searchResults.length} course${
+                searchResults.length !== 1 ? "s" : ""
+              }`
+            : isAuthenticated
+            ? "Track your progress and continue learning"
+            : "Discover amazing courses and start learning today"}
         </Typography>
       </Stack>
 
-      {/* Show stats when not searching or no results */}
-      {!hasSearchResults && !isSearching && (
+      {/* Show stats when authenticated and not searching */}
+      {isAuthenticated && !hasSearchResults && !isSearching && (
         <>
           {/* Stats Cards */}
           <Grid container spacing={3}>
@@ -130,8 +170,8 @@ function DashboardPage() {
         </Box>
       )}
 
-      {/* Show categorized search results */}
-      {hasSearchResults && !isSearching && (
+      {/* Show categorized courses */}
+      {!hasSearchWithNoResults && !isSearching && (
         <Stack spacing={4}>
           {Object.entries(categorizedResults).map(([category, courses]) => (
             <Box key={category}>
@@ -145,7 +185,9 @@ function DashboardPage() {
                   {category}
                 </Typography>
                 <Chip
-                  label={`${courses.length} course${courses.length !== 1 ? "s" : ""}`}
+                  label={`${courses.length} course${
+                    courses.length !== 1 ? "s" : ""
+                  }`}
                   size="small"
                   color="primary"
                   variant="outlined"
@@ -167,6 +209,7 @@ function DashboardPage() {
                           cursor: "pointer",
                         },
                       }}
+                      onClick={() => handleCourseClick(course.id)}
                     >
                       <Box sx={{ position: "relative" }}>
                         <CardMedia

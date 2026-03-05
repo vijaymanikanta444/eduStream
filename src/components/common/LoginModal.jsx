@@ -10,9 +10,12 @@ import {
   Alert,
   Box,
   IconButton,
+  InputAdornment,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 import SchoolIcon from "@mui/icons-material/School";
+import VisibilityIcon from "@mui/icons-material/Visibility";
+import VisibilityOffIcon from "@mui/icons-material/VisibilityOff";
 import { useAuth } from "../../contexts/AuthContext";
 import { useSupAuth } from "../../hooks/useSupAuth";
 
@@ -26,6 +29,7 @@ function LoginModal({ open, onClose }) {
   });
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -68,7 +72,11 @@ function LoginModal({ open, onClose }) {
       // Close modal and navigate after a short delay to show success
       setTimeout(() => {
         onClose();
-        navigate("/dashboard");
+        const normalizedRole = (profile.role || profile.user_role || "student")
+          .toLowerCase();
+        navigate(
+          normalizedRole === "admin" ? "/admin/dashboard" : "/dashboard",
+        );
       }, 500);
     } else {
       setError("Invalid credentials. Please try again.");
@@ -78,8 +86,12 @@ function LoginModal({ open, onClose }) {
   const handleClose = () => {
     setFormData({ email: "", password: "" });
     setError("");
-    setSuccess(false);
+    setShowPassword(false);
     onClose();
+  };
+
+  const handleTogglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
   };
 
   return (
@@ -147,11 +159,36 @@ function LoginModal({ open, onClose }) {
                 fullWidth
                 label="Password"
                 name="password"
-                type="password"
+                type={showPassword ? "text" : "password"}
                 value={formData.password}
                 onChange={handleChange}
                 placeholder="Enter your password"
                 disabled={authLoading || success}
+                slotProps={{
+                  input: {
+                    endAdornment: (
+                      <InputAdornment position="end">
+                        <IconButton
+                          onClick={handleTogglePasswordVisibility}
+                          edge="end"
+                          disabled={authLoading || success}
+                          sx={{
+                            color: "text.secondary",
+                            "&:hover": {
+                              bgcolor: "action.hover",
+                            },
+                          }}
+                        >
+                          {showPassword ? (
+                            <VisibilityOffIcon />
+                          ) : (
+                            <VisibilityIcon />
+                          )}
+                        </IconButton>
+                      </InputAdornment>
+                    ),
+                  },
+                }}
               />
 
               <Button

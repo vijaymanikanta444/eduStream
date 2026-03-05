@@ -40,6 +40,7 @@ export function AuthProvider({ children }) {
       name: userData.name || userData.full_name || "Student",
       rollNumber: userData.rollNumber || userData.roll_number || "N/A",
       email: userData.email || "student@college.edu",
+      role: (userData.role || userData.user_role || "student").toLowerCase(),
       ...userData,
     };
     setUser(userWithDefaults);
@@ -52,10 +53,11 @@ export function AuthProvider({ children }) {
   }, []);
 
   const isAuthenticated = Boolean(user);
+  const isAdmin = user?.role?.toLowerCase() === "admin";
 
   return (
     <AuthContext.Provider
-      value={{ user, isAuthenticated, login, logout, isLoading }}
+      value={{ user, isAuthenticated, isAdmin, login, logout, isLoading }}
     >
       {!isLoading && children}
     </AuthContext.Provider>

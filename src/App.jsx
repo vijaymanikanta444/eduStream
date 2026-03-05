@@ -7,6 +7,7 @@ import {
 import AppLayout from "./layouts/AppLayout";
 import PublicHomePage from "./pages/PublicHomePage";
 import DashboardPage from "./pages/DashboardPage";
+import AdminDashboardPage from "./pages/AdminDashboardPage";
 import ProfilePage from "./pages/ProfilePage";
 import SettingsPage from "./pages/SettingsPage";
 import { useAuth } from "./contexts/AuthContext";
@@ -16,6 +17,20 @@ function ProtectedRoute({ children }) {
 
   if (!isAuthenticated) {
     return <Navigate to="/" replace />;
+  }
+
+  return children;
+}
+
+function AdminRoute({ children }) {
+  const { isAuthenticated, isAdmin } = useAuth();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/" replace />;
+  }
+
+  if (!isAdmin) {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return children;
@@ -39,11 +54,9 @@ function App() {
         <Route
           path="/dashboard"
           element={
-            <ProtectedRoute>
-              <AppLayout>
-                <DashboardPage />
-              </AppLayout>
-            </ProtectedRoute>
+            <AppLayout>
+              <DashboardPage />
+            </AppLayout>
           }
         />
 
@@ -66,6 +79,17 @@ function App() {
                 <SettingsPage />
               </AppLayout>
             </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/dashboard"
+          element={
+            <AdminRoute>
+              <AppLayout>
+                <AdminDashboardPage />
+              </AppLayout>
+            </AdminRoute>
           }
         />
 
