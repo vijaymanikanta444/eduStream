@@ -35,15 +35,17 @@ export function AuthProvider({ children }) {
   }, []);
 
   const login = useCallback((userData) => {
-    const userWithDefaults = {
-      id: userData.id || "1",
-      name: userData.name || "John Doe",
-      rollNumber: userData.rollNumber || "2024001",
-      email: userData.email || "john@example.com",
-      ...userData,
-    };
-    setUser(userWithDefaults);
-    localStorage.setItem("user", JSON.stringify(userWithDefaults));
+    console.log({ userData });
+
+    // const userWithDefaults = {
+    //   id: userData.id || "1",
+    //   name: userData.name || "John Doe",
+    //   rollNumber: userData.rollNumber || "2024001",
+    //   email: userData.email || "john@example.com",
+    //   ...userData,
+    // };
+    // setUser(userWithDefaults);
+    // localStorage.setItem("user", JSON.stringify(userWithDefaults));
   }, []);
 
   const logout = useCallback(() => {

@@ -54,8 +54,7 @@ function LoginModal({ open, onClose }) {
     try {
       login({
         email: formData.email,
-        name: formData.email.split("@")[0],
-        rollNumber: "2024001",
+        password: formData.password,
       });
 
       onClose(); // Close the modal
