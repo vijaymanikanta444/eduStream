@@ -131,15 +131,18 @@ function LoginModal({ open, onClose }) {
 
       <DialogContent sx={{ p: 4 }}>
         <Stack spacing={3}>
-          <Box sx={{ display: "flex", justifyContent: "center" }}>
-            <SchoolIcon
-              sx={{
-                fontSize: 48,
-                color: "primary.main",
-                mb: 1,
-              }}
-            />
-          </Box>
+         <Box sx={{ display: "flex", justifyContent: "center" }}>
+          <Box
+            component="img"
+            src="/logo2.jpg"
+            alt="EduStream Logo"
+            sx={{
+              height: { s: 28, sm: 40 },
+              width: "auto",
+              mb: 2,
+            }}
+          />
+        </Box>
 
           <Box sx={{ textAlign: "center" }}>
             <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>

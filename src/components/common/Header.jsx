@@ -69,8 +69,9 @@ function Header() {
           >
             <Box
               component="img"
-              src={"logo2.jpg"}
-              alt="EduStream Logo"
+              src={"/logo2.jpg"}
+              
+              
               sx={{
                 height: { xs: 28, sm: 32 },
                 width: "auto",
