@@ -14,6 +14,7 @@ import UserMenu from "./UserMenu";
 import LoginModal from "./LoginModal";
 import { useAuth } from "../../contexts/AuthContext";
 import { useNavigate } from "react-router-dom";
+import logo2 from "../../assets/logo2.jpg";
 
 function Header() {
   const muiTheme = useTheme();
@@ -57,12 +58,16 @@ function Header() {
             }}
             onClick={() => navigate(isAuthenticated ? "/dashboard" : "/")}
           >
-            <SchoolIcon
-              sx={{
-                fontSize: { xs: 28, sm: 32 },
-                color: "primary.main",
-              }}
-            />
+                      <Box
+            component="img"
+            src={"logo2.jpg"}
+            alt="EduStream Logo"
+            sx={{
+              height: { xs: 28, sm: 32 },
+              width: "auto",
+            }}
+/>
+            
             <Typography
               variant="h6"
               component="div"
