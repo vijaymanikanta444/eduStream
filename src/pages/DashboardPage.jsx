@@ -9,13 +9,15 @@ import {
   Chip,
   IconButton,
   Divider,
+  Button,
+  Container,
 } from "@mui/material";
 import PlayCircleOutlineIcon from "@mui/icons-material/PlayCircleOutline";
 import StarIcon from "@mui/icons-material/Star";
 import PeopleIcon from "@mui/icons-material/People";
 import AccessTimeIcon from "@mui/icons-material/AccessTime";
 import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import ConnectionStatusCard from "../components/dashboard/ConnectionStatusCard";
 import { useAuth } from "../contexts/AuthContext";
 import { useSearch } from "../contexts/SearchContext";
@@ -24,11 +26,20 @@ import { categorizeCourses, getAllCourses } from "../services/courseApi";
 
 function DashboardPage() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { user, isAuthenticated } = useAuth();
   const { searchQuery, searchResults, isSearching } = useSearch();
   const { openLoginModal } = useLoginModal();
   const [allCourses, setAllCourses] = useState([]);
   const [loading, setLoading] = useState(true);
+  const pendingCourseId = searchParams.get("courseId");
+
+  // Open login modal if there's a pending course and user is not authenticated
+  useEffect(() => {
+    if (pendingCourseId && !isAuthenticated) {
+      openLoginModal();
+    }
+  }, [pendingCourseId, isAuthenticated, openLoginModal]);
 
   // Fetch all courses on mount
   useEffect(() => {
@@ -58,6 +69,7 @@ function DashboardPage() {
   // Handle course click
   const handleCourseClick = (courseId) => {
     if (!isAuthenticated) {
+      setSearchParams({ courseId });
       openLoginModal();
     } else {
       navigate(`/course/${courseId}`);
@@ -66,13 +78,57 @@ function DashboardPage() {
 
   return (
     <Stack spacing={3}>
+      {/* Hero Section - Show only for non-authenticated users or when no search */}
+      {(!isAuthenticated || (!hasSearchResults && !isSearching)) && (
+        <Box
+          sx={{
+            background: "linear-gradient(135deg, #667eea 0%, #764ba2 100%)",
+            color: "white",
+            py: { xs: 6, md: 10 },
+            px: 2,
+            borderRadius: 2,
+            mb: 2,
+          }}
+        >
+          <Container maxWidth="lg">
+            <Stack spacing={3} alignItems={{ xs: "center", md: "flex-start" }}>
+              <Box>
+                <Typography
+                  variant="h3"
+                  sx={{
+                    fontWeight: 800,
+                    mb: 2,
+                    fontSize: { xs: "2rem", sm: "2.5rem", md: "3.5rem" },
+                    textAlign: { xs: "center", md: "left" },
+                  }}
+                >
+                  Learn Anything, Anytime
+                </Typography>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    mb: 3,
+                    fontSize: { xs: "1rem", md: "1.25rem" },
+                    fontWeight: 300,
+                    maxWidth: 500,
+                    textAlign: { xs: "center", md: "left" },
+                  }}
+                >
+                  Unlock your potential with expert-led courses across all
+                  domains
+                </Typography>
+              </Box>
+            </Stack>
+          </Container>
+        </Box>
+      )}
       <Stack spacing={1}>
         <Typography variant="h4" sx={{ fontWeight: 700 }}>
           {hasSearchResults
             ? `Search Results for "${searchQuery}"`
             : isAuthenticated
-            ? `Welcome back, ${user?.name || "Student"}!`
-            : "Explore Our Courses"}
+              ? `Welcome back, ${user?.name || "Student"}!`
+              : "Explore Our Courses"}
         </Typography>
         <Typography variant="body1" color="text.secondary">
           {hasSearchResults
@@ -80,8 +136,8 @@ function DashboardPage() {
                 searchResults.length !== 1 ? "s" : ""
               }`
             : isAuthenticated
-            ? "Track your progress and continue learning"
-            : "Discover amazing courses and start learning today"}
+              ? "Track your progress and continue learning"
+              : "Discover amazing courses and start learning today"}
         </Typography>
       </Stack>
 

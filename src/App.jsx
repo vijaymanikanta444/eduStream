@@ -5,7 +5,6 @@ import {
   Navigate,
 } from "react-router-dom";
 import AppLayout from "./layouts/AppLayout";
-import PublicHomePage from "./pages/PublicHomePage";
 import DashboardPage from "./pages/DashboardPage";
 import AdminDashboardPage from "./pages/AdminDashboardPage";
 import ProfilePage from "./pages/ProfilePage";
@@ -40,17 +39,16 @@ function App() {
   return (
     <Router>
       <Routes>
-        {/* Public Home Page - No auth required, login modal available */}
+        {/* Unified Home/Dashboard Page - accessible to all users */}
         <Route
           path="/"
           element={
             <AppLayout>
-              <PublicHomePage />
+              <DashboardPage />
             </AppLayout>
           }
         />
 
-        {/* Protected Routes */}
         <Route
           path="/dashboard"
           element={

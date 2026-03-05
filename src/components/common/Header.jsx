@@ -61,7 +61,7 @@ function Header() {
               cursor: "pointer",
               flexShrink: 0,
             }}
-            onClick={() => navigate(isAuthenticated ? "/dashboard" : "/")}
+            onClick={() => navigate("/")}
           >
                       <Box
             component="img"

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   Dialog,
   DialogContent,
@@ -21,6 +21,7 @@ import { useSupAuth } from "../../hooks/useSupAuth";
 
 function LoginModal({ open, onClose }) {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { login } = useAuth();
   const { loginUser, loading: authLoading, error: authError } = useSupAuth();
   const [formData, setFormData] = useState({
@@ -30,6 +31,7 @@ function LoginModal({ open, onClose }) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const pendingCourseId = searchParams.get("courseId");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -65,18 +67,27 @@ function LoginModal({ open, onClose }) {
     }
 
     if (profile) {
-      // Login successful
-      setSuccess(true);
+      // Login successful - update AuthContext with user data
       login(profile);
-      
+      setSuccess(true);
+
       // Close modal and navigate after a short delay to show success
       setTimeout(() => {
         onClose();
         const normalizedRole = (profile.role || profile.user_role || "student")
           .toLowerCase();
-        navigate(
-          normalizedRole === "admin" ? "/admin/dashboard" : "/dashboard",
-        );
+
+        // If there's a pending course ID, go directly to that course page
+        if (pendingCourseId) {
+          // Clear the courseId from URL params
+          setSearchParams({});
+          navigate(`/course/${pendingCourseId}`);
+        } else {
+          // Otherwise navigate to dashboard or admin dashboard based on role
+          navigate(
+            normalizedRole === "admin" ? "/admin/dashboard" : "/dashboard",
+          );
+        }
       }, 500);
     } else {
       setError("Invalid credentials. Please try again.");
